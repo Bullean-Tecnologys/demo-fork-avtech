@@ -51,8 +51,11 @@ export default function Page() {
     <main>
       <header>
         <div>
-          <h1>Demo</h1>
-          <p className="sub">TA FUNCIONANDOOOOOOO</p>
+          <h1>Demo v2</h1>
+          <h1>Valley maioral</h1>
+          <h1>quem perdeu vacilou</h1>
+          <h1>lets fucking go!</h1>
+          <p className="sub">NOVO</p>
         </div>
         <div className="pills">
           <Pill nome="web" estado="ok" />
