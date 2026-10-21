@@ -32,4 +32,4 @@ export type Pedido = {
   entregue_em: string | null;
 };
 export type Pagina<T> = { total: number; itens: T[] };
-export type Saude = { api: string; data: string; fonte?: string };
+export type Saude = { api: string; data: string; fonte?: string; mensagem?: string };

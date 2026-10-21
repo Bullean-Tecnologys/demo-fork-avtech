@@ -1,6 +1,6 @@
 # Configuração: environments, secrets e container
 
-O código já vem com os workflows prontos. Este checkout publica o produto Atlas no container de testes `demo`, em `demo.amontadavalley.com.br`. A ligação acontece no GitHub e no container; o banco externo é opcional. A infraestrutura em si (container, túnel do Cloudflare, nginx base, Node, Python) já está pronta. Os serviços da aplicação continuam se chamando `atlas-web`, `atlas-api` e `atlas-data`.
+O código já vem com os workflows prontos. Este fork publica no container `comprasabertas`, em `comprasabertas.amontadavalley.com.br`. A ligação acontece no GitHub e no container; o banco externo é opcional. A infraestrutura em si (container, túnel do Cloudflare, nginx base, Node, Python) já está pronta. Os serviços da aplicação continuam se chamando `atlas-web`, `atlas-api` e `atlas-data`.
 
 ## 1. No GitHub (Settings do repositório)
 
@@ -9,12 +9,16 @@ Se quiser um freio de segurança, marque *Required reviewers*: o deploy fica esp
 
 **Variables** do environment `production` (valores que podem aparecer):
 
-| Nome | Valor para o ambiente demo |
+| Nome | Valor para o ambiente Compras Abertas |
 |---|---|
-| `SSH_HOST` | `ssh-demo.amontadavalley.com.br` |
-| `SSH_USER` | `demo` |
-| `DEPLOY_PATH` | `/home/demo/apps/atlas-demo` (defina explicitamente; sem a variable, o workflow usa `/home/demo/apps/demo`) |
-| `SITE_URL` | `https://demo.amontadavalley.com.br` (usado no teste de fumaça; vazio pula o teste) |
+| `SSH_HOST` | `ssh-comprasabertas.amontadavalley.com.br` |
+| `SSH_USER` | `comprasabertas` |
+| `DEPLOY_PATH` | `/home/comprasabertas/apps/comprasabertas` |
+| `SITE_URL` | `https://comprasabertas.amontadavalley.com.br` (obrigatório para configurar o domínio e testar o deploy) |
+
+`SITE_URL` deve conter somente a URL HTTPS pública, sem caminho, query ou credenciais. O workflow valida a URL, envia seu domínio como `APP_DOMAIN` e renderiza `__APP_DOMAIN__` no template do Nginx. Um fork pode usar outro domínio alterando essas variables, sem editar o virtual host manualmente. Para executar o script manualmente no container, informe o domínio: `APP_DOMAIN=comprasabertas.amontadavalley.com.br bash deploy/remote-deploy.sh`.
+
+`/api/health` usa `api: "ok"` e `data: "ok"` para indicar serviços saudáveis. O frontend e o deploy dependem desses valores; textos de demonstração ficam em `mensagem`, exibida separadamente na tela.
 
 **Secrets** do environment `production` (valores sensíveis):
 
@@ -26,12 +30,12 @@ Se quiser um freio de segurança, marque *Required reviewers*: o deploy fica esp
 **Qual chave usar?** O pacote de acesso da squad traz uma PEM compartilhada que administra o container inteiro. Funciona, mas é melhor o GitHub ter uma chave própria, que dá para revogar sem mexer na da equipe:
 
 ```bash
-# na sua máquina, com o acesso ao demo já configurado (ssh demo funcionando)
-ssh-keygen -t ed25519 -C "github-actions-demo" -f ./deploy_demo -N ""
-ssh-copy-id -i ./deploy_demo.pub demo        # acrescenta a chave pública no container
-# conteúdo de ./deploy_demo        -> secret SSH_PRIVATE_KEY
-# conteúdo de ~/.ssh/valley-demo/known_hosts -> secret SSH_KNOWN_HOSTS
-rm ./deploy_demo ./deploy_demo.pub           # a privada passa a morar só no GitHub
+# na sua máquina, com o acesso ao Compras Abertas já configurado
+ssh-keygen -t ed25519 -C "github-actions-comprasabertas" -f ./deploy_comprasabertas -N ""
+ssh-copy-id -i ./deploy_comprasabertas.pub comprasabertas
+# conteúdo de ./deploy_comprasabertas -> secret SSH_PRIVATE_KEY
+# conteúdo de ~/.ssh/valley-comprasabertas/known_hosts -> secret SSH_KNOWN_HOSTS
+rm ./deploy_comprasabertas ./deploy_comprasabertas.pub
 ```
 
 Não use `StrictHostKeyChecking no` para "resolver" erros de conexão: o `known_hosts` existe justamente para isso.
@@ -47,9 +51,9 @@ Assim ninguém dá push direto na main e nada entra sem passar no CI e sem revie
 Quase nada: o primeiro deploy faz o resto. Só falta, se for ligar o banco, criar o arquivo de ambiente (ele fica só no container, nunca no git):
 
 ```bash
-ssh demo
-mkdir -p ~/apps/atlas-demo
-nano ~/apps/atlas-demo/.env
+ssh comprasabertas
+mkdir -p ~/apps/comprasabertas
+nano ~/apps/comprasabertas/.env
 ```
 
 ```
@@ -81,4 +85,4 @@ Os dados são sintéticos, gerados por `scripts/gen-seed.py` com nomes de fornec
 
 1. Faça uma mudança pequena, abra um PR e veja o CI rodar.
 2. Faça o merge e acompanhe a aba **Actions**.
-3. Abra `https://demo.amontadavalley.com.br`: os três selos no topo (web, api, dados) devem estar verdes.
+3. Abra `https://comprasabertas.amontadavalley.com.br`: os três selos no topo (web, api, dados) devem estar verdes.

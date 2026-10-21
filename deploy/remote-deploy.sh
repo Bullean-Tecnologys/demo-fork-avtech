@@ -7,9 +7,12 @@ set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP_USER="$(id -un)"
-DOMINIO="demo.amontadavalley.com.br"
 SITE_NOME="atlas-app"
 cd "$DIR"
+DOMINIO="$(python3 deploy/target-domain.py "https://${APP_DOMAIN:?Defina APP_DOMAIN com o domínio do ambiente}")"
+NGINX_RENDERED="$(mktemp)"
+trap 'rm -f "$NGINX_RENDERED"' EXIT
+sed "s/__APP_DOMAIN__/$DOMINIO/g" deploy/nginx/atlas-app.conf > "$NGINX_RENDERED"
 
 echo "==> api: dependências de produção"
 (cd api && npm ci --omit=dev --no-audit --no-fund)
@@ -32,7 +35,7 @@ sudo systemctl restart atlas-data atlas-api atlas-web
 echo "==> nginx: site $SITE_NOME"
 SITE="/etc/nginx/sites-available/$SITE_NOME"
 LINK="/etc/nginx/sites-enabled/$SITE_NOME"
-if ! sudo cmp -s deploy/nginx/atlas-app.conf "$SITE" || [ ! -L "$LINK" ]; then
+if ! sudo cmp -s "$NGINX_RENDERED" "$SITE" || [ ! -L "$LINK" ]; then
   BAK="/etc/nginx/valley-backups/$(date +%Y%m%d%H%M%S)"
   sudo mkdir -p "$BAK"
   MOVIDOS=()
@@ -43,7 +46,7 @@ if ! sudo cmp -s deploy/nginx/atlas-app.conf "$SITE" || [ ! -L "$LINK" ]; then
     sudo mv "$f" "$BAK/$(basename "$f")"
     MOVIDOS+=("$(basename "$f")")
   done
-  sudo install -o root -g root -m 0644 deploy/nginx/atlas-app.conf "$SITE"
+  sudo install -o root -g root -m 0644 "$NGINX_RENDERED" "$SITE"
   sudo ln -sfn "$SITE" "$LINK"
   if sudo nginx -t; then
     sudo systemctl reload nginx

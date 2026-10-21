@@ -62,6 +62,7 @@ export default function Page() {
           <Pill nome="api" estado={saude?.api ?? 'indisponivel'} />
           <Pill nome="dados" estado={saude?.data ?? 'indisponivel'} />
           {saude?.fonte && <span className="pill neutro">fonte: {saude.fonte}</span>}
+          {saude?.mensagem && <span className="pill neutro">{saude.mensagem}</span>}
         </div>
       </header>
 

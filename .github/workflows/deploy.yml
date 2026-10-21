@@ -80,10 +80,12 @@ jobs:
       - name: Enviar e ativar no container
         run: |
           DEPLOY_PATH="${DEPLOY_PATH_VAR:-/home/$SSH_USER/apps/demo}"
+          APP_DOMAIN="$(python3 deploy/target-domain.py "$SITE_URL")"
           scp release.tgz valley:/tmp/atlas-release.tgz
-          ssh valley bash -s -- "$DEPLOY_PATH" <<'REMOTE'
+          ssh valley bash -s -- "$DEPLOY_PATH" "$APP_DOMAIN" <<'REMOTE'
           set -euo pipefail
           D="$1"
+          export APP_DOMAIN="$2"
           mkdir -p "$D"
           rm -rf "$D/web" "$D/api/dist" "$D/data/app" "$D/deploy"
           tar -xzf /tmp/atlas-release.tgz -C "$D"
@@ -92,8 +94,8 @@ jobs:
           REMOTE
 
       - name: Teste de fumaça (o site respondeu pelo domínio?)
-        if: ${{ env.SITE_URL != '' }}
         run: |
+          SITE_URL="${SITE_URL%/}"
           for i in 1 2 3 4 5 6; do
             if curl -fsS "$SITE_URL/" -o /tmp/demo-home.html \
               && curl -fsS "$SITE_URL/api/health" -o /tmp/demo-health.json \

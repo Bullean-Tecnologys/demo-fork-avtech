@@ -52,3 +52,5 @@ jobs:
           cache-dependency-path: data/requirements-dev.txt
       - run: pip install -r requirements-dev.txt
       - run: pytest -q
+      - name: Validar o domínio e o template de deploy
+        run: python -m unittest discover -s ../deploy -p 'test_*.py' -v
