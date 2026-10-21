@@ -51,8 +51,8 @@ export default function Page() {
     <main>
       <header>
         <div>
-          <h1>Atlas</h1>
-          <p className="sub">painel de pedidos de compra (demo) · Amontada Valley</p>
+          <h1>Demo</h1>
+          <p className="sub">TA FUNCIONANDOOOOOOO</p>
         </div>
         <div className="pills">
           <Pill nome="web" estado="ok" />
